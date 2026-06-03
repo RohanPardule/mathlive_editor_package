@@ -1,3 +1,11 @@
+## 0.1.2
+
+- README: user-focused docs; removed internal publishing and Rodha migration sections.
+
+## 0.1.1
+
+- Sync repository URLs with GitHub; publish after `mathlive_studio` rename.
+
 ## 0.1.0
 
 - Initial release as `mathlive_studio`: `MathLiveMixedPreview`, `MathLiveEmbeddedEditor`, `MathLiveEditorPage`.

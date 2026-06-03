@@ -1,17 +1,47 @@
 # mathlive_studio
 
-Mixed **plain text + inline LaTeX** `\(...\)` preview and **MathLive** math editor for Flutter.
+Render and edit **mixed content** in Flutter: normal text plus inline math written as LaTeX inside `\(...\)`, powered by [MathLive](https://mathlive.io/) **0.101.2**.
 
-- **Viewer** — `MathLiveMixedPreview` (WebView on mobile/desktop, iframe on web).
-- **Editor** — `MathLiveEmbeddedEditor`, `MathLiveEditorPage`.
-- **Utilities** — `textUsesMathLivePreview`, `normalizeInlineMath`, `parsePreviewParts`.
-- **Fallback** — `InlineTexMixedText` / `buildSimpleLatexInline` (no WebView, no `flutter_math_fork`).
+Works on **Android, iOS, and Web** (mobile/desktop use a WebView; web uses iframes / platform views).
 
-MathLive **0.101.2** is loaded from [jsDelivr](https://cdn.jsdelivr.net/npm/mathlive@0.101.2/) at runtime; `assets/mathlive/mathlive_editor.html` is bundled for the editor shell.
+## Features
 
-## Add to your app
+| Feature | Widget / API |
+|--------|----------------|
+| Read-only preview | `MathLiveMixedPreview` |
+| Inline editor (fixed height) | `MathLiveEmbeddedEditor` |
+| Full-screen editor | `MathLiveEditorPage` |
+| Detect math in a string | `textUsesMathLivePreview()` |
+| Normalize LaTeX / delimiters | `normalizeInlineMath()`, `normalizeLatexForFlutterMath()` |
+| Lightweight fallback (no WebView) | `InlineTexMixedText`, `buildSimpleLatexInline()` |
 
-### Path dependency (local / monorepo)
+Host apps do **not** need to declare MathLive assets in their own `pubspec.yaml` — they are bundled in this package.
+
+## Installation
+
+### pub.dev (recommended)
+
+```yaml
+dependencies:
+  mathlive_studio: ^0.1.1
+```
+
+```bash
+flutter pub get
+```
+
+### Git
+
+```yaml
+dependencies:
+  mathlive_studio:
+    git:
+      url: https://github.com/RohanPardule/mathlive_editor_package.git
+      path: flutter_mathlive_mixed
+      ref: main
+```
+
+### Local path (monorepo)
 
 ```yaml
 dependencies:
@@ -19,173 +49,198 @@ dependencies:
     path: ../flutter_mathlive_mixed
 ```
 
-### Git dependency
+## Text format
 
-```yaml
-dependencies:
-  mathlive_studio:
-    git:
-      url: https://github.com/your-org/mathlive_studio.git
-      ref: main
+Store user-facing content as plain text with **inline math** wrapped in delimiters:
+
+```text
+The area of a circle is \(A = \pi r^2\) where \(r\) is the radius.
 ```
 
-### pub.dev (after publish)
-
-```yaml
-dependencies:
-  mathlive_studio: ^0.1.0
-```
-
-No extra asset declaration is required in the host app — assets ship inside the package.
+- **Preview** expects this mixed format (`\(...\)` for each formula).
+- **Editor** exports **inner LaTeX only** (e.g. `\frac{1}{2}`) from `MathLiveEmbeddedEditor` / `MathLiveEditorPage`; wrap with `\(` `\)` yourself when building preview strings.
 
 ## Quick start
 
 ```dart
+import 'package:flutter/material.dart';
 import 'package:mathlive_studio/mathlive_studio.dart';
 import 'package:mathlive_studio/utils.dart';
-
-// Preview (chat bubble style)
-MathLiveMixedPreview(
-  previewText: r'Solve \(x^2 + 1 = 0\).',
-  isDark: false,
-  backgroundColor: Colors.transparent,
-  baseStyle: TextStyle(fontSize: 15, color: Colors.black87),
-  expandToContent: true,
-  displayOnly: true,
-)
-
-// Gate: WebView vs lightweight Text
-if (textUsesMathLivePreview(body)) {
-  // use MathLiveMixedPreview
-} else {
-  InlineTexMixedText(source: body, style: textStyle);
-}
-
-// Embedded editor
-MathLiveEmbeddedEditor(
-  isDark: false,
-  initialLatex: r'\frac{1}{2}',
-  onLatexChanged: (latex) => print(latex),
-)
-
-// Full-screen editor
-final latex = await MathLiveEditorPage.open(context, isDark: false);
 ```
+
+### Preview
+
+```dart
+MathLiveMixedPreview(
+  previewText: r'Solve \(x^2 + 1 = 0\) for real \(x\).',
+  isDark: Theme.of(context).brightness == Brightness.dark,
+  backgroundColor: Colors.transparent,
+  baseStyle: Theme.of(context).textTheme.bodyMedium!,
+  expandToContent: true,   // chat-style: height follows content
+  displayOnly: true,     // no text selection inside WebView
+)
+```
+
+### Choose preview vs plain text
+
+```dart
+final TextStyle style = Theme.of(context).textTheme.bodyMedium!;
+
+Widget buildBody(String text) {
+  if (textUsesMathLivePreview(text)) {
+    return MathLiveMixedPreview(
+      previewText: text,
+      isDark: false,
+      backgroundColor: Colors.white,
+      baseStyle: style,
+    );
+  }
+  return InlineTexMixedText(source: text, style: style);
+}
+```
+
+### Embedded editor + live preview
+
+```dart
+String latex = r'\frac{1}{2}';
+
+Column(
+  children: [
+    MathLiveEmbeddedEditor(
+      isDark: false,
+      initialLatex: latex,
+      height: 300,
+      onLatexChanged: (value) => setState(() => latex = value),
+    ),
+    const SizedBox(height: 12),
+    MathLiveMixedPreview(
+      previewText: r'\(' + latex + r'\)',
+      isDark: false,
+      backgroundColor: Colors.grey.shade100,
+      baseStyle: const TextStyle(fontSize: 15),
+      expandToContent: true,
+      displayOnly: true,
+    ),
+  ],
+)
+```
+
+### Full-screen editor
+
+```dart
+final String? latex = await MathLiveEditorPage.open(
+  context,
+  isDark: false,
+  initialLatex: r'x^2+1',
+);
+if (latex != null) {
+  // use inner LaTeX
+}
+```
+
+## `MathLiveMixedPreview` options
+
+| Parameter | Use when |
+|-----------|----------|
+| `expandToContent: true` | Chat bubbles, detail screens — WebView height tracks math layout |
+| `displayOnly: true` | Read-only; disables selection / copy UI in the WebView |
+| `clipOverflow: true` | List cards — fixed `maxViewportHeight`, clip excess (no inner scroll) |
+| `maxViewportHeight` | Cap height (defaults to ~45% of screen if omitted) |
+| `preventShrinkingReportedHeight: true` | Reduces web height flicker when content grows in scrollable parents |
+| `baseStyle` | Font family, size, color passed into the HTML layer |
+
+**List card (short teaser):**
+
+```dart
+MathLiveMixedPreview(
+  previewText: snippet,
+  isDark: isDark,
+  backgroundColor: cardColor,
+  baseStyle: bodyStyle,
+  maxViewportHeight: 72,
+  clipOverflow: true,
+)
+```
+
+## Theming
+
+Optional chrome colors for editors:
+
+```dart
+const theme = MathLiveMixedTheme(
+  accent: Color(0xFF2563EB),
+);
+
+MathLiveEmbeddedEditor(
+  isDark: isDark,
+  theme: theme,
+  onLatexChanged: (_) {},
+)
+```
+
+Preview colors come from your `baseStyle` and `backgroundColor` — no app-specific theme types required.
 
 ## Platform notes
 
+### Network
+
+MathLive **JS/CSS** load from **jsDelivr** over HTTPS at runtime. Devices need internet for first render unless you customize the HTML to use only bundled assets.
+
 ### Android
 
-- Uses `webview_flutter` / `webview_flutter_android`.
-- MathLive script/CSS load over **HTTPS** (jsDelivr). Internet permission is required (default in Flutter apps).
-- If you load non-HTTPS URLs, configure cleartext in `AndroidManifest.xml` (not needed for the default CDN setup).
+- `webview_flutter` + `webview_flutter_android`
+- Default Flutter apps already include `INTERNET`.
 
 ### iOS
 
-- Uses `WKWebView` via `webview_flutter`.
-- **App Transport Security (ATS)** allows HTTPS to jsDelivr by default. For CDN-only usage, no ATS exceptions are required.
-- For offline-only MathLive (no CDN), bundle all JS/CSS locally and adjust `baseUrl` / HTML links (future enhancement).
+- `WKWebView` via `webview_flutter`
+- HTTPS CDN works with default App Transport Security.
 
 ### Web
 
-- Preview: blob iframe + `postMessage` (`MathLiveMixedPreview` channel).
-- Editor: MathLive injected into a `HtmlElementView` div (virtual keyboard works in the host document).
-- Pin `webview_flutter_web: 0.2.3+2` if your Flutter SDK is older than 3.22.
+- Preview: blob URL iframe + `postMessage` height sync
+- Editor: MathLive runs in a host `HtmlElementView` so the virtual keyboard works
+- If your Flutter SDK is &lt; 3.22, pin `webview_flutter_web: 0.2.3+2` in the **app** `pubspec.yaml`
 
 ## Example app
 
+From the [repository](https://github.com/RohanPardule/mathlive_editor_package):
+
 ```bash
-cd example
+cd flutter_mathlive_mixed/example
 flutter pub get
-flutter run -d chrome    # web
-flutter run              # device / simulator
+flutter run -d chrome
+flutter run   # iOS / Android
 ```
 
-## Publishing to pub.dev
+Tabs demonstrate preview toggles and an embedded editor with live preview.
 
-Follow the [Dart publishing guide](https://dart.dev/tools/pub/publishing).
+## API exports
 
-### 1. Prepare the package
+```dart
+// package:mathlive_studio/mathlive_studio.dart
+MathLiveMixedPreview
+MathLiveEmbeddedEditor
+MathLiveEditorPage
+MathLiveMixedTheme
+InlineTexMixedText
+buildSimpleLatexInline
+parsePreviewParts
+buildMathLiveMixedPreviewHtml  // advanced: custom HTML host
 
-- [ ] Set real `homepage`, `repository`, and `issue_tracker` URLs in `pubspec.yaml`.
-- [ ] Ensure `LICENSE` is present (MIT for this package; MathLive has its own license).
-- [ ] Write a clear `CHANGELOG.md` for each release.
-- [ ] Bump version in `pubspec.yaml` (semver: `0.1.0` → `0.1.1` patch, `0.2.0` minor).
-- [ ] Run checks:
-
-```bash
-cd flutter_mathlive_mixed
-dart pub publish --dry-run
-dart analyze
-flutter test
-cd example && dart analyze
+// package:mathlive_studio/utils.dart
+textUsesMathLivePreview
+normalizeInlineMath
+normalizeLatexForFlutterMath
+convertOuterPlainTextToMathliveLatex
 ```
 
-Fix anything reported by `--dry-run` (missing fields, invalid licenses, large files, etc.).
+## Issues & contributing
 
-### 2. Create a pub.dev account
-
-1. Sign in at [pub.dev](https://pub.dev/) with your Google account.
-2. Run locally:
-
-```bash
-dart pub login
-```
-
-### 3. Verify publisher (recommended)
-
-For a verified publisher (e.g. `publisher:yourcompany.com`):
-
-1. Create organization on pub.dev → **Create publisher**.
-2. Add the DNS `TXT` record pub.dev provides.
-3. After verification, add to `pubspec.yaml`:
-
-```yaml
-publisher: yourcompany.com
-```
-
-### 4. Publish
-
-```bash
-cd flutter_mathlive_mixed
-dart pub publish
-```
-
-Confirm when prompted. First upload may take a few minutes to appear on pub.dev.
-
-### 5. Tag releases (optional)
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-### 6. CI for pub.dev (optional)
-
-- GitHub Action: run `dart analyze` and `flutter test` on PRs.
-- On release tag, run `dart pub publish` with `PUB_CREDENTIALS` or `dart pub token add` in CI (see [pub.dev publishing automation](https://dart.dev/tools/pub/automation)).
-
-### Common publish failures
-
-| Issue | Fix |
-|--------|-----|
-| `publish_to: none` | Remove that line from **package** `pubspec.yaml` (keep it in `example/`). |
-| Missing description | `description:` must be a non-empty sentence in `pubspec.yaml`. |
-| Large assets | pub.dev limits package size; vendored `mathlive.min.js` in assets is OK if under limits. |
-| Score / pana warnings | Run `dart pub publish --dry-run`; address `dartdoc` and platform warnings. |
-
-## Rodha / host app migration
-
-This package was generalized from an internal mentor editor stack. Replace:
-
-| Rodha | Package |
-|--------|---------|
-| `MentorMathLiveMixedPreview` | `MathLiveMixedPreview` |
-| `MentorMathLiveEmbeddedEditor` | `MathLiveEmbeddedEditor` |
-| `MentorMathLiveEditorPage` | `MathLiveEditorPage` |
-| `threadTextUsesMixedMathPreview` | `textUsesMathLivePreview` |
-| `RodhaMathLive` / `RodhaMathLiveHost` | `MathLiveMixed` / `MathLiveMixedHost` |
+- [Bug reports / features](https://github.com/RohanPardule/mathlive_editor_package/issues)
+- [Source](https://github.com/RohanPardule/mathlive_editor_package/tree/main/flutter_mathlive_mixed)
 
 ## License
 
-MIT for Dart/package code. MathLive is subject to its own license when loaded from CDN or bundled assets.
+- **This package (Dart):** MIT — see [LICENSE](LICENSE).
+- **MathLive** (CDN / bundled assets): subject to the [MathLive license](https://github.com/arnog/mathlive); review before commercial redistribution.
