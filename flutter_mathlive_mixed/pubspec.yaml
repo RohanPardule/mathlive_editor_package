@@ -1,4 +1,4 @@
-name: flutter_mathlive_mixed
+name: mathlive_studio
 description: >-
   Mixed plain text and inline LaTeX preview (MathLive) plus MathLive editor
   for Flutter (WebView on mobile, iframe on web).

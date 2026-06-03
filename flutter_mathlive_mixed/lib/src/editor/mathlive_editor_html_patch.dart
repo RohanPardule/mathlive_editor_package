@@ -8,4 +8,4 @@ String patchMathLiveEditorHtml(String raw, {String? rootAndClientId}) {
 
 /// Package asset path for [rootBundle.loadString].
 const String kMathLiveEditorHtmlAsset =
-    'packages/flutter_mathlive_mixed/assets/mathlive/mathlive_editor.html';
+    'packages/mathlive_studio/assets/mathlive/mathlive_editor.html';

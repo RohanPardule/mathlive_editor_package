@@ -1,4 +1,4 @@
-# flutter_mathlive_mixed
+# mathlive_studio
 
 Mixed **plain text + inline LaTeX** `\(...\)` preview and **MathLive** math editor for Flutter.
 
@@ -15,7 +15,7 @@ MathLive **0.101.2** is loaded from [jsDelivr](https://cdn.jsdelivr.net/npm/math
 
 ```yaml
 dependencies:
-  flutter_mathlive_mixed:
+  mathlive_studio:
     path: ../flutter_mathlive_mixed
 ```
 
@@ -23,9 +23,9 @@ dependencies:
 
 ```yaml
 dependencies:
-  flutter_mathlive_mixed:
+  mathlive_studio:
     git:
-      url: https://github.com/your-org/flutter_mathlive_mixed.git
+      url: https://github.com/your-org/mathlive_studio.git
       ref: main
 ```
 
@@ -33,7 +33,7 @@ dependencies:
 
 ```yaml
 dependencies:
-  flutter_mathlive_mixed: ^0.1.0
+  mathlive_studio: ^0.1.0
 ```
 
 No extra asset declaration is required in the host app — assets ship inside the package.
@@ -41,8 +41,8 @@ No extra asset declaration is required in the host app — assets ship inside th
 ## Quick start
 
 ```dart
-import 'package:flutter_mathlive_mixed/flutter_mathlive_mixed.dart';
-import 'package:flutter_mathlive_mixed/utils.dart';
+import 'package:mathlive_studio/mathlive_studio.dart';
+import 'package:mathlive_studio/utils.dart';
 
 // Preview (chat bubble style)
 MathLiveMixedPreview(

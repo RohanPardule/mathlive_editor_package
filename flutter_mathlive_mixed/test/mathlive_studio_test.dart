@@ -1,5 +1,5 @@
-import 'package:flutter_mathlive_mixed/flutter_mathlive_mixed.dart';
-import 'package:flutter_mathlive_mixed/utils.dart';
+import 'package:mathlive_studio/mathlive_studio.dart';
+import 'package:mathlive_studio/utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

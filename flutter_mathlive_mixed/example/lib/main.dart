@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_mathlive_mixed/flutter_mathlive_mixed.dart';
-import 'package:flutter_mathlive_mixed/utils.dart';
+import 'package:mathlive_studio/mathlive_studio.dart';
+import 'package:mathlive_studio/utils.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -76,7 +76,7 @@ class _ExampleHomeState extends State<ExampleHome>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('flutter_mathlive_mixed'),
+        title: const Text('mathlive_studio'),
         actions: <Widget>[
           IconButton(
             tooltip: 'Toggle theme',

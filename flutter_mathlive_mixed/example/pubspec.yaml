@@ -1,5 +1,5 @@
-name: flutter_mathlive_mixed_example
-description: Demo app for flutter_mathlive_mixed (preview + editor).
+name: mathlive_studio_example
+description: Demo app for mathlive_studio (preview + editor).
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_mathlive_mixed:
+  mathlive_studio:
     path: ../
   cupertino_icons: ^1.0.8
 

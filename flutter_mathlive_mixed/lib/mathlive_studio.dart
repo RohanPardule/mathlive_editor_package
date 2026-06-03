@@ -1,4 +1,4 @@
-library flutter_mathlive_mixed;
+library mathlive_studio;
 
 export 'src/config/mathlive_channels.dart';
 export 'src/config/mathlive_mixed_theme.dart';
